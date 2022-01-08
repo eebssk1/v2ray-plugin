@@ -9,6 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Set outputs
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
     - name: Set up Go
       uses: actions/setup-go@v2
@@ -21,6 +25,12 @@ jobs:
     - name: Build
       run: ./build-release.sh
       
+    - name: Tag 
+      uses: rickstaa/action-create-tag@v1
+      with:
+          tag: ${{ steps.vars.outputs.sha_short }}
+          message: ${{ github.event.head_commit.message }}
+      
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.3.1
       with:
@@ -31,3 +41,4 @@ jobs:
       uses: softprops/action-gh-release@v0.1.14
       with:
           files: bin/*
+          tag_name: ${{ steps.vars.outputs.sha_short }}
